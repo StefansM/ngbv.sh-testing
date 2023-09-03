@@ -68,14 +68,13 @@ find_main_branch() {
     # Otherwise, try the common candidates.
     for branch in $candidate_default_branches; do
         if git rev-parse --verify "$branch" >/dev/null 2>&1; then
-            echo $branch
+            echo "$branch"
             return 0
         fi
     done
 
     # Otherwise it's an error.
     error "Could not find main branch from candidates '$candidate_default_branches'."
-    return 1
 }
 
 # Retrieve the current branch or abort.
@@ -155,9 +154,6 @@ current_branch="$(get_current_branch)"
 main_branch="$(find_main_branch)"
 
 if [ "$main_branch" != "$current_branch" ]; then
-    if ! head_commit="$(git rev-parse --short HEAD)"; then
-        error "Failed to find commit hash of HEAD."
-    fi
     suffix="-dev"
 fi
 
