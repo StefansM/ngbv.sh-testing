@@ -17,5 +17,7 @@ jobs:
         id: version
       - run: |
           git tag v${{ steps.version.outputs.version }}
+      - run: |
+          git push --tags
 
 
