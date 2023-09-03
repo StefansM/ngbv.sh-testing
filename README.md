@@ -14,7 +14,7 @@ was last changed. To bump major or minor versions, manually bump the version in
 `version.txt`.
 
 First, initialise your project with a base version. After `version.txt` has
-been committed, nbgv.sh will return the version number in `version.txt`
+been committed, nbgv.sh will return the version number in `version.txt`.
 
 ```console
 $ git init

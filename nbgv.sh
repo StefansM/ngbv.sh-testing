@@ -5,36 +5,39 @@ verbose="$V"
 
 # Print usage message and exit with the given status code.
 usage() {
-    cat <<EOF >&2
-Usage: nbgv.sh
+    cat <<EOF
+USAGE: nbgv.sh
 
-Call nbgv.sh from within a git repository. The repository must contain
-a file named 'version.txt' in the repository root, which must contain a
-version number in the form MINOR.MAJOR.PATCH.
+OVERVIEW
 
-Nbgv.sh will bump the patch number by one for every commit since
-version.txt was last modified.
+  Call nbgv.sh from within a git repository. The repository must contain
+  a file named 'version.txt' in the repository root, which must contain a
+  version number in the form MINOR.MAJOR.PATCH.
+
+  Nbgv.sh will bump the patch number by one for every commit since
+  version.txt was last modified.
 
 
 CONFIGURATION
 
-Enable verbose output by setting the environment variable 'V':
+  Enable verbose output by setting the environment variable 'V':
 
-    $ V=1 nbgv.sh
+      $ V=1 nbgv.sh
 
-If the default branch of your git repository isn't one of $candidate_default_branches,
-you can set the default branch with the environment variable MAIN_BRANCH:
+  If the default branch of your git repository isn't one of
+  $candidate_default_branches, you can set the default branch with the
+  environment variable MAIN_BRANCH:
 
-    $ MAIN_BRANCH=my-odly-named-main-branch nbgv.sh
+      $ MAIN_BRANCH=my-odly-named-main-branch nbgv.sh
 EOF
-    exit "$1"
 }
 
 # Print an error message, followed by the usage message and then bail out.
 error() {
-    echo "$1" >&2
+    echo "ERROR: $1" >&2
     echo "" >&2
-    usage 1
+    usage >&2
+    exit 1
 }
 
 # Print message to stderr when the V(erbose) environment variable is set.
@@ -101,18 +104,19 @@ get_root_directory() {
     echo "$root_of_repo"
 }
 
-# Sanity check: there's only one root commit.
-assert_only_one_root
-
 
 # First, we move to the root of the git directory, where version.txt should live.
 root_of_repo="$(get_root_directory)"
 cd "$root_of_repo" || error "Error changing directory to '$root_of_repo'."
 
+
 # Read the contents of version.txt
 if [ ! -e version.txt ]; then
     error "version.txt not found."
 fi
+
+# Sanity check: there's only one root commit.
+assert_only_one_root
 
 version="$(cat version.txt)"
 

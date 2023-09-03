@@ -5,8 +5,24 @@ nbgv="$current_dir/nbgv.sh"
 
 export GIT_CEILING_DIRECTORIES="$current_dir"
 
+failures=0
+
 fail() {
     echo "fail: $1" >&2
+}
+
+
+run-test() {
+    test_name="$1"
+    shift
+
+    echo -n "$test_name $@ ..."
+    if "$test_name" $@; then
+        echo " success"
+    else
+        echo " fail"
+        failures="$((failures + 1))"
+    fi
 }
 
 
@@ -197,7 +213,7 @@ test-unparseable-versions-are-errors() {
 test-do-not-support-multiple-roots() {
     make-test-dir "${FUNCNAME[0]}"
 
-    git init -q
+    git init -q -b master
 
     input="0.0.0"
 
@@ -221,19 +237,19 @@ test-do-not-support-multiple-roots() {
     fi
 }
 
-failures=0
-( test-no-git-repo ) || failures=$((failures + 1))
-( test-no-version-txt ) || failures=$((failures + 1))
-( test-version-txt-has-not-been-comitted ) || failures=$((failures + 1))
-( test-committed-version-used-verbatim ) || failures=$((failures + 1))
-( test-patch-version-is-incremented-per-commit ) || failures=$((failures + 1))
-( test-suffix-is-added-on-non-default-branches ) || failures=$((failures + 1))
-( test-arbitrary-default-branches-supported ) || failures=$((failures + 1))
-( test-do-not-support-multiple-roots ) || failures=$((failures + 1))
+
+run-test test-no-git-repo
+run-test test-no-version-txt
+run-test test-version-txt-has-not-been-comitted
+run-test test-committed-version-used-verbatim
+run-test test-patch-version-is-incremented-per-commit
+run-test test-suffix-is-added-on-non-default-branches
+run-test test-arbitrary-default-branches-supported
+run-test test-do-not-support-multiple-roots
 
 invalid_inputs=("" "0.1" "foo.1.2")
 for invalid_input in "${invalid_inputs[@]}"; do
-    ( test-unparseable-versions-are-errors "$invalid_input" ) || failures=$((failures + 1))
+    run-test test-unparseable-versions-are-errors "$invalid_input"
 done
 
 if [[ "$failures" -ne 0 ]]; then
