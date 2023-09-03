@@ -86,22 +86,12 @@ get_current_branch() {
     echo "$current_branch"
 }
 
-# Get the "root" commit of the git repository. Bear in mind that there can be several root commits.
-identify_repo_root() {
-    chosen_commit=""
-    max_commit_depth=0
-
-    # There can be several "root" commits in a git repository. Find the
-    # farthest commit.
-    for commit in $(git rev-list --all --max-parents=0); do
-        commit_depth="$(git rev-list --count --ancestry-path "$commit"..HEAD)"
-        if [ "$commit_depth" -gt "$max_commit_depth" ]; then
-            max_commit_depth="$commit_depth"
-            chosen_commit="$commit"
-        fi
-    done
-
-    echo "$chosen_commit"
+# It's possible but rare to have multiple root commits in a repo. We don't support that.
+assert_only_one_root() {
+    num_root_commits="$(git rev-list --all --max-parents=0 | wc -l)"
+    if [ "$num_root_commits" -gt 1 ]; then
+        error "There was more than one root commit. Nbgv.sh doesn't support exotic git topologies."
+    fi
 }
 
 # Get the root directory of the git repository or abort.
@@ -111,6 +101,9 @@ get_root_directory() {
     fi
     echo "$root_of_repo"
 }
+
+# Sanity check: there's only one root commit.
+assert_only_one_root
 
 
 # First, we move to the root of the git directory, where version.txt should live.

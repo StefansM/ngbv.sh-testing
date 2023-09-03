@@ -188,10 +188,40 @@ test-unparseable-versions-are-errors() {
     git add version.txt
     git commit -q -m 'Add version.txt'
 
-    if "$nbgv" 2>/dev/null; then
+    if "$nbgv" &>/dev/null; then
         fail "nbgv should fail when given an incompatible version."
         return 1
     fi
+}
+
+test-do-not-support-multiple-roots() {
+    make-test-dir "$FUNCNAME"
+
+    git init -q
+
+    input="0.0.0"
+
+    echo "$input" > version.txt
+    git add version.txt
+    git commit -q -m 'Add version.txt'
+
+    git checkout -q --orphan orphan
+
+    echo "1" > orphan_file
+    git add orphan_file
+    git commit -q -m "Orphan commit $i"
+
+    git checkout -q master
+    git merge -q -m 'Merge histories' --allow-unrelated-histories orphan
+
+
+    if "$nbgv" &>/dev/null; then
+        fail "nbgv should fail when multiple roots are present."
+        return 1
+    fi
+
+    echo $version
+
 }
 
 failures=0
@@ -202,6 +232,7 @@ failures=0
 ( test-patch-version-is-incremented-per-commit ) || failures=$((failures + 1))
 ( test-suffix-is-added-on-non-default-branches ) || failures=$((failures + 1))
 ( test-arbitrary-default-branches-supported ) || failures=$((failures + 1))
+( test-do-not-support-multiple-roots ) || failures=$((failures + 1))
 
 invalid_inputs=("" "0.1" "foo.1.2")
 for invalid_input in "${invalid_inputs[@]}"; do
