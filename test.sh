@@ -1,6 +1,6 @@
 #!/bin/bash
 
-current_dir="$(readlink -f "$(dirname "$BASH_SOURCE[0]")")"
+current_dir="$(readlink -f "$(dirname "${BASH_SOURCE[0]}")")"
 nbgv="$current_dir/nbgv.sh"
 
 export GIT_CEILING_DIRECTORIES="$current_dir"
@@ -15,12 +15,12 @@ make-test-dir() {
     [[ -e "$1" ]] && rm -rf "$1"
 
     mkdir "$1"
-    cd "$1"
+    cd "$1" || exit 1
 }
 
 
 test-no-git-repo() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     if "$nbgv" &>/dev/null; then
         fail "nbgv should abort outside of a git repo."
@@ -29,7 +29,7 @@ test-no-git-repo() {
 }
 
 test-no-version-txt() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     git init -q
 
@@ -40,7 +40,7 @@ test-no-version-txt() {
 }
 
 test-version-txt-has-not-been-comitted() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     git init -q
 
@@ -56,7 +56,7 @@ test-version-txt-has-not-been-comitted() {
 }
 
 test-committed-version-used-verbatim() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     expected="0.6.9"
 
@@ -78,7 +78,7 @@ test-committed-version-used-verbatim() {
 }
 
 test-patch-version-is-incremented-per-commit() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     input="0.1.0"
     expected="0.1.2"
@@ -109,7 +109,7 @@ test-patch-version-is-incremented-per-commit() {
 }
 
 test-suffix-is-added-on-non-default-branches() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     input="0.1.0"
     expected="0.1.2"
@@ -144,7 +144,7 @@ test-suffix-is-added-on-non-default-branches() {
 }
 
 test-arbitrary-default-branches-supported() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     git init -q --initial-branch some-branch
 
@@ -180,7 +180,7 @@ test-arbitrary-default-branches-supported() {
 
 test-unparseable-versions-are-errors() {
     input="$1"
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     git init -q
 
@@ -195,7 +195,7 @@ test-unparseable-versions-are-errors() {
 }
 
 test-do-not-support-multiple-roots() {
-    make-test-dir "$FUNCNAME"
+    make-test-dir "${FUNCNAME[0]}"
 
     git init -q
 
@@ -209,7 +209,7 @@ test-do-not-support-multiple-roots() {
 
     echo "1" > orphan_file
     git add orphan_file
-    git commit -q -m "Orphan commit $i"
+    git commit -q -m "Orphan commit"
 
     git checkout -q master
     git merge -q -m 'Merge histories' --allow-unrelated-histories orphan
@@ -219,9 +219,6 @@ test-do-not-support-multiple-roots() {
         fail "nbgv should fail when multiple roots are present."
         return 1
     fi
-
-    echo $version
-
 }
 
 failures=0
